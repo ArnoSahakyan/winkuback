@@ -3,7 +3,6 @@ const cors = require("cors");
 require('dotenv').config()
 const path = require('path');
 
-
 const app = express();
 
 app.use(
@@ -22,13 +21,13 @@ app.use(express.json());
 
 app.use('/upload', express.static(path.join(__dirname, 'app/upload')));
 
-
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
 // database
 const db = require("./app/models");
-const Role = db.role;
+
+// const Role = db.role;
 
 // force: true will drop the table if it already exists
 // db.sequelize.sync().then(() => {
@@ -36,7 +35,12 @@ const Role = db.role;
 //   initial();
 // });
 
-db.sequelize.sync();
+db.sequelize.sync().then(() => {
+  console.log('Database synchronized successfully.');
+}).catch((err) => {
+  console.error('Error synchronizing the database:', err);
+});
+
 
 // simple route
 app.get("/", (req, res) => {
@@ -47,11 +51,13 @@ app.get("/", (req, res) => {
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
 require('./app/routes/upload.routes')(app);
+require('./app/routes/post.routes')(app);
+require('./app/routes/comment.routes')(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 7070;
 app.listen(PORT, () => {
-  console.log(`Server is running on port http://0.0.0.0:${PORT}.`);
+  console.log(`Server is running on port ${PORT}.`);
 });
 
 // function initial() {

@@ -2,8 +2,6 @@ require('dotenv').config()
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const db = require("../models");
-const fs = require('fs');
-const path = require('path');
 
 const User = db.user;
 const Role = db.role;
@@ -16,20 +14,20 @@ const generateAccessToken = (user) => {
     {
       algorithm: 'HS256',
       allowInsecureKeySizes: true,
-      expiresIn: "1h",
+      expiresIn: '1hr',
     });
   return accessToken
 }
 
 const generateRefreshToken = (user) => {
-  const accessToken = jwt.sign({ id: user.id },
+  const refreshToken = jwt.sign({ id: user.id },
     process.env.REFRESH_TOKEN_SECRET,
     {
       algorithm: 'HS256',
       allowInsecureKeySizes: true,
-      expiresIn: "24h",
+      expiresIn: "1d",
     });
-  return accessToken
+  return refreshToken
 }
 
 exports.signup = (req, res) => {

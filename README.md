@@ -1,65 +1,94 @@
-# Node.js – JWT Authentication example with PostgreSQL example
+# Winku Social Networking Server
 
-## User Registration, User Login and Authorization process.
-The diagram shows flow of how we implement User Registration, User Login and Authorization process.
+## Overview
 
-![jwt-token-authentication-node-js-example-flow](jwt-token-authentication-node-js-example-flow.png)
+Welcome to the Winku Social Networking Server! This Node.js project utilizes Express.js to create a robust server-side application for managing the backend functionalities of the Winku social networking platform.
 
-For more detail, please visit:
-> [Node.js JWT Authentication & Authorization with PostgreSQL example](https://www.bezkoder.com/node-js-jwt-authentication-postgresql/)
+## Features
 
-You may need to implement Refresh Token:
+- User authentication and authorization
+- Profile management
+- Post creation, editing, and deletion
+- Commenting and liking on posts
+- Real-time notifications
+- Messaging system
+- Search functionality
 
-![jwt-refresh-token-node-js-example-flow](jwt-refresh-token-node-js-example-flow.png)
+## Installation
 
-> [Node.js JWT Refresh Token example](https://www.bezkoder.com/jwt-refresh-token-node-js/)
+1. Clone the repository:
 
-Working with Front-end:
-> [Vue.js JWT Authentication with Vuex and Vue Router](https://www.bezkoder.com/jwt-vue-vuex-authentication/)
+    ```bash
+    git clone https://github.com/ArnoSahakyan/winkuback.git
+    ```
 
-> [Angular 8 JWT Authentication example](https://www.bezkoder.com/angular-jwt-authentication/)
+2. Navigate to the project directory:
 
-> [Angular 10 JWT Authentication example](https://www.bezkoder.com/angular-10-jwt-auth/)
+    ```bash
+    cd winku-server
+    ```
 
-> [Angular 11 JWT Authentication example](https://www.bezkoder.com/angular-11-jwt-auth/)
+3. Install dependencies:
 
-> [Angular 12 JWT Authentication example](https://www.bezkoder.com/angular-12-jwt-auth/)
+    ```bash
+    npm install
+    ```
 
-> [Angular 13 JWT Authentication example](https://www.bezkoder.com/angular-13-jwt-auth/)
+4. Set up environment variables:
 
-> [React JWT Authentication & Authorization (without Redux) example](https://www.bezkoder.com/react-jwt-auth/)
+    Create a `.env` file in the root directory and define the following variables:
 
-> [React Redux JWT Authentication & Authorization example](https://www.bezkoder.com/react-redux-jwt-auth/)
+    ```
+    PORT=3000
+    DB_URI=<your_database_connection_string>
+    SECRET_KEY=<your_secret_key_for_jwt>
+    ```
 
-## More Practice:
-> [Node.js CRUD Rest APIs with Express, Sequelize & PostgreSQL example](https://www.bezkoder.com/node-express-sequelize-postgresql/)
+5. Start the server:
 
-> [Node.js Express Pagination with PostgreSQL example](https://www.bezkoder.com/node-js-pagination-postgresql/)
+    ```bash
+    npm start
+    ```
 
-> [Node.js Express File Upload Rest API example](https://www.bezkoder.com/node-js-express-file-upload/)
+6. The server will start running on `http://localhost:3000` by default.
 
-> [Node.js Express File Upload with Google Cloud Storage example](https://www.bezkoder.com/google-cloud-storage-nodejs-upload-file/)
+## API Endpoints
 
-Associations:
-> [Sequelize Associations: One-to-Many Relationship example](https://www.bezkoder.com/sequelize-associate-one-to-many/)
+- **POST /api/auth/register**: Register a new user.
+- **POST /api/auth/login**: Login user and generate JWT token.
+- **GET /api/profile/me**: Get current user's profile.
+- **PUT /api/profile**: Update current user's profile.
+- **GET /api/profile/user/:user_id**: Get profile by user ID.
+- **DELETE /api/profile**: Delete current user's account.
+- **POST /api/posts**: Create a new post.
+- **GET /api/posts**: Get all posts.
+- **GET /api/posts/:post_id**: Get post by ID.
+- **PUT /api/posts/:post_id**: Update post by ID.
+- **DELETE /api/posts/:post_id**: Delete post by ID.
+- **POST /api/posts/comment/:post_id**: Comment on a post.
+- **DELETE /api/posts/comment/:post_id/:comment_id**: Delete a comment on a post.
+- **POST /api/posts/like/:post_id**: Like a post.
+- **POST /api/posts/unlike/:post_id**: Unlike a post.
+- **GET /api/notifications**: Get current user's notifications.
+- **PUT /api/notifications/:notification_id**: Mark notification as read.
+- **POST /api/messages**: Send a message to another user.
+- **GET /api/messages**: Get current user's messages.
+- **GET /api/messages/:user_id**: Get messages with a specific user.
+- **DELETE /api/messages/:message_id**: Delete a message by ID.
+- **GET /api/search/users/:query**: Search for users by username.
 
-> [Sequelize Associations: Many-to-Many Relationship example](https://www.bezkoder.com/sequelize-associate-many-to-many/)
+## Technologies Used
 
-Integration on same Server/Port:
-> [Integrate Vue with Node.js Express](https://www.bezkoder.com/serve-vue-app-express/)
+- Node.js
+- Express.js
+- PostgreSQL
+- JWT for authentication
+- Socket.io for real-time notifications
 
-> [Integrate Angular with Node.js Express](https://www.bezkoder.com/integrate-angular-12-node-js/)
+## Contributing
 
-> [Integrate React with Node.js Express](https://www.bezkoder.com/integrate-react-express-same-server-port/)
+Contributions are welcome! If you have any ideas for improvements or new features, feel free to open an issue or submit a pull request.
 
-## Project setup
-```
-npm install
-```
+## Acknowledgements
 
-Then, edit `app/config/db.config.js` with correct DB credentials.
-
-### Run
-```
-node server.js
-```
+Special thanks to the developers of Node.js, Express.js, MongoDB, and all the other open-source libraries and tools used in this project.

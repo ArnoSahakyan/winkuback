@@ -9,36 +9,40 @@ if (!fs.existsSync(baseUploadDir)) {
 }
 
 // Utility function to handle directory creation and file removal
-const setupDirectory = (userUploadDir, cb) => {
+const setupDirectory = (userUploadDir, subDir, cb) => {
   if (!fs.existsSync(userUploadDir)) {
     fs.mkdirSync(userUploadDir, { recursive: true });
     cb(null, userUploadDir);
   } else {
-    // Delete existing files in the user's upload directory
-    fs.readdir(userUploadDir, (err, files) => {
-      if (err) return cb(err);
+    // Only delete existing files if the directory is not 'posts'
+    if (subDir !== 'posts') {
+      fs.readdir(userUploadDir, (err, files) => {
+        if (err) return cb(err);
 
-      for (const file of files) {
-        fs.unlink(path.join(userUploadDir, file), err => {
-          if (err) return cb(err);
-        });
-      }
+        for (const file of files) {
+          fs.unlink(path.join(userUploadDir, file), err => {
+            if (err) return cb(err);
+          });
+        }
+        cb(null, userUploadDir);
+      });
+    } else {
       cb(null, userUploadDir);
-    });
+    }
   }
 };
 
 const createStorage = (subDir) => multer.diskStorage({
   destination: function (req, file, cb) {
-    const userID = req.body.userID; // Get userID from the request body
+    const userID = req.userId; // Get userID from the req object
     const userUploadDir = path.join(baseUploadDir, userID.toString(), subDir); // Create a directory for the user
-    setupDirectory(userUploadDir, cb);
+    setupDirectory(userUploadDir, subDir, cb);
   },
   filename: function (req, file, cb) {
     // Generate a unique filename for each uploaded image
     const ext = path.extname(file.originalname);
     const imageName = `${Date.now()}${ext}`;
-    file.relativePath = `/upload/${req.body.userID}/${subDir}/${imageName}`; // Store the relative path in the file object
+    file.relativePath = `/upload/${req.userId}/${subDir}/${imageName}`; // Store the relative path in the file object
     cb(null, imageName);
   }
 });
@@ -68,7 +72,6 @@ const uploadPostImages = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: imageFileFilter
 });
-
 
 module.exports = {
   uploadPfp,

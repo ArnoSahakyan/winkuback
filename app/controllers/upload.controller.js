@@ -1,6 +1,6 @@
 const { user } = require("../models");
 
-const updatePath = async (userID, path, fieldKey) => {
+exports.updatePath = async (userID, path, fieldKey) => {
   try {
     const userRecord = await user.findByPk(userID);
     if (userRecord) {
@@ -16,7 +16,7 @@ const updatePath = async (userID, path, fieldKey) => {
 
 exports.controllerPfp = async (req, res) => {
   try {
-    const userID = req.body.userID;
+    const userID = req.userId;
     const relativePath = req.file.relativePath;
 
     await updatePath(userID, relativePath, "pfp");
@@ -32,7 +32,7 @@ exports.controllerPfp = async (req, res) => {
 
 exports.controllerCover = async (req, res) => {
   try {
-    const userID = req.body.userID;
+    const userID = req.userId;
     const relativePath = req.file.relativePath;
 
     await updatePath(userID, relativePath, "coverPhoto");
@@ -45,3 +45,4 @@ exports.controllerCover = async (req, res) => {
     res.status(500).send('Internal server error');
   }
 }
+
