@@ -19,7 +19,7 @@ exports.controllerPfp = async (req, res) => {
     const userID = req.userId;
     const relativePath = req.file.relativePath;
 
-    await updatePath(userID, relativePath, "pfp");
+    await this.updatePath(userID, relativePath, "pfp");
 
     res.status(200).json({
       relativePath
@@ -35,7 +35,7 @@ exports.controllerCover = async (req, res) => {
     const userID = req.userId;
     const relativePath = req.file.relativePath;
 
-    await updatePath(userID, relativePath, "coverPhoto");
+    await this.updatePath(userID, relativePath, "coverPhoto");
 
     res.status(200).json({
       relativePath

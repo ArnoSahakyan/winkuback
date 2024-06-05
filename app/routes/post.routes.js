@@ -1,4 +1,4 @@
-const { createPost, getAllPostsByUser, getNewsfeed } = require('../controllers/post.controller');
+const { createPost, getAllPostsByUser, getNewsfeed, getUserPhotos } = require('../controllers/post.controller');
 const { verifyToken } = require('../middleware/authJwt');
 const { uploadPostImages } = require('../middleware/uploads');
 
@@ -8,4 +8,6 @@ module.exports = function (app) {
   app.get('/api/userPosts', verifyToken, getAllPostsByUser)
 
   app.get('/api/newsfeed', verifyToken, getNewsfeed)
+
+  app.get('/api/photos', verifyToken, getUserPhotos)
 };
