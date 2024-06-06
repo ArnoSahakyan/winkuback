@@ -190,7 +190,10 @@ exports.getUserPhotos = async (req, res) => {
 
   try {
     const posts = await db.post.findAll({
-      where: { userId: userId },
+      where: {
+        userId: userId,
+        image: { [db.Sequelize.Op.ne]: null }
+      },
       attributes: ['postId', 'image'],
       order: [['postId', 'DESC']]
     })
