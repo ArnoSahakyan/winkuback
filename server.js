@@ -53,6 +53,8 @@ require('./app/routes/user.routes')(app);
 require('./app/routes/upload.routes')(app);
 require('./app/routes/post.routes')(app);
 require('./app/routes/comment.routes')(app);
+require('./app/routes/friend.routes')(app);
+require('./app/routes/friendRequest.routes')(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 7070;
