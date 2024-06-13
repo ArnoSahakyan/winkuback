@@ -45,4 +45,3 @@ exports.controllerCover = async (req, res) => {
     res.status(500).send('Internal server error');
   }
 }
-

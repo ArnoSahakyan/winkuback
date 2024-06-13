@@ -186,7 +186,7 @@ exports.getNewsfeed = async (req, res) => {
 };
 
 exports.getUserPhotos = async (req, res) => {
-  const userId = req.userId;
+  const userId = req.params['id'];
 
   try {
     const posts = await db.post.findAll({
@@ -209,3 +209,79 @@ exports.getUserPhotos = async (req, res) => {
     res.status(500).json({ error: 'Error fetching posts not by user' });
   }
 }
+
+exports.getUserPostsById = async (req, res) => {
+  const userId = req.params['id']
+
+  try {
+    const posts = await db.post.findAll({
+      where: { userId: userId },
+      include: [
+        {
+          model: db.user,
+          attributes: ['fname', 'pfp']
+        },
+        {
+          model: db.comment,
+          where: { parentId: null },
+          required: false,
+          attributes: ['commentId', 'content', 'parentId', 'createdAt'],
+          include: [
+            {
+              model: db.user,
+              attributes: ['fname', 'pfp']
+            },
+            {
+              model: db.comment,
+              as: 'replies',
+              include: {
+                model: db.user,
+                attributes: ['fname', 'pfp']
+              },
+              order: [['commentId', 'DESC']]
+            }
+          ],
+          order: [['commentId', 'DESC']]
+        }
+      ],
+      order: [['postId', 'DESC']]
+    });
+
+
+    if (!posts) {
+      return res.status(404).json({ message: 'Posts Not Found' });
+    }
+
+    const response = posts.map(post => ({
+      postId: post.postId,
+      content: post.content,
+      image: post.image,
+      likes: post.likes,
+      createdAt: post.createdAt,
+      fname: post.user.fname,
+      pfp: post.user.pfp,
+      userId: post.userId,
+      comments: post.comments.length > 0 ? post.comments.map(comment => ({
+        commentId: comment.commentId,
+        content: comment.content,
+        parentId: comment.parentId,
+        createdAt: comment.createdAt,
+        fname: comment.user.fname,
+        pfp: comment.user.pfp,
+        replies: comment.replies.length > 0 ? comment.replies.map(reply => ({
+          commentId: reply.commentId,
+          content: reply.content,
+          parentId: reply.parentId,
+          createdAt: reply.createdAt,
+          fname: reply.user.fname,
+          pfp: reply.user.pfp
+        })) : null
+      })) : null
+    }));
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching posts not by user:", error);
+    res.status(500).json({ error: 'Error fetching posts not by user' });
+  }
+};

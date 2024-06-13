@@ -1,13 +1,12 @@
 const db = require('../models');
 
 exports.respondToFriendRequest = async (req, res) => {
-  const { requestId, status } = req.body; // status should be either 'accepted' or 'rejected'
+  const { senderId, status } = req.body;
   const userId = req.userId;
-
   try {
     const friendRequest = await db.friendRequest.findOne({
       where: {
-        requestId: requestId,
+        senderId: senderId,
         receiverId: userId,
       },
     });
@@ -16,14 +15,17 @@ exports.respondToFriendRequest = async (req, res) => {
       return res.status(404).json({ message: 'Friend request not found' });
     }
 
+    if (senderId === userId) {
+      return res.status(400).json({ message: "User can't send a request to themselves" });
+    }
+
     if (status === 'accepted') {
       await db.friend.create({ userId: friendRequest.senderId, friendId: friendRequest.receiverId });
-      await db.friend.create({ userId: friendRequest.receiverId, friendId: friendRequest.senderId });
     }
 
     await friendRequest.destroy(); // Remove the request after response
 
-    res.status(200).json({ message: `Friend request ${status}` });
+    res.status(200).json({ message: `Friend request ${status}`, status, requestId: friendRequest.requestId });
   } catch (error) {
     console.error('Error responding to friend request:', error);
     res.status(500).json({ error: 'Error responding to friend request' });
@@ -31,14 +33,14 @@ exports.respondToFriendRequest = async (req, res) => {
 };
 
 exports.sendFriendRequest = async (req, res) => {
-  const senderId = req.userId;
   const { receiverId } = req.body;
+  const senderId = req.userId;
 
   try {
     const existingRequest = await db.friendRequest.findOne({
       where: {
         senderId: senderId,
-        receiverId: receiverId,
+        receiverId: receiverId
       }
     });
 
@@ -46,13 +48,29 @@ exports.sendFriendRequest = async (req, res) => {
       return res.status(400).json({ message: 'Friend request already sent' });
     }
 
-    const friendRequest = await db.friendRequest.create({
-      senderId: senderId,
-      receiverId: receiverId,
-      status: 'pending',
+    if (senderId === receiverId) {
+      return res.status(400).json({ message: "User can't send a request to themselves" });
+    }
+
+    const existingFriend = await db.friend.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { userId: senderId, friendId: receiverId },
+          { userId: receiverId, friendId: senderId }
+        ]
+      }
     });
 
-    res.status(201).json(friendRequest);
+    if (existingFriend) {
+      return res.status(400).json({ message: 'User is already your friend' });
+    }
+
+    await db.friendRequest.create({
+      senderId: senderId,
+      receiverId: receiverId
+    });
+
+    res.status(200).json({ message: 'Friend request sent successfully' });
   } catch (error) {
     console.error('Error sending friend request:', error);
     res.status(500).json({ error: 'Error sending friend request' });
@@ -73,7 +91,16 @@ exports.getRequests = async (req, res) => {
         attributes: ['id', 'fname', 'pfp']
       }]
     })
-    res.status(200).json(friendRequests);
+
+
+    const response = friendRequests.map(request => ({
+      requestId: request.requestId,
+      senderId: request.senderId,
+      status: request.status,
+      fname: request.sender.fname,
+      pfp: request.sender.pfp
+    }))
+    res.status(200).json(response);
 
   } catch (error) {
     console.error('Error fetching requests:', error);

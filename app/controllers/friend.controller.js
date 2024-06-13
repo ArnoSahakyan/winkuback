@@ -6,52 +6,110 @@ exports.getFriends = async (req, res) => {
   try {
     const friends = await db.friend.findAll({
       where: {
-        userId: userId
-      },
-      include: [{
-        model: db.user,
-        as: 'friend',
-        attributes: ['id', 'fname', 'email', 'pfp', 'job']
-      }]
+        [db.Sequelize.Op.or]: [
+          { userId: userId },
+          { friendId: userId }
+        ]
+      }
     });
 
-    res.status(200).json(friends);
+    const friendList = friends.map(friend => {
+      return friend.userId === userId ? friend.friendId : friend.userId;
+    });
+
+    const users = await db.user.findAll({
+      where: {
+        id: {
+          [db.Sequelize.Op.in]: friendList
+        }
+      },
+      attributes: ['id', 'fname', 'username', 'pfp', 'job', 'email', 'onlineStatus']
+    });
+
+    res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching friends:', error);
     res.status(500).json({ error: 'Error fetching friends' });
   }
 };
 
+
 exports.deleteFriend = async (req, res) => {
-  const { friendId } = req.body;
+  const { friendId } = req.params;
   const userId = req.userId;
-
   try {
-    const friend1 = await db.friend.findOne({
+    const friend = await db.friend.findOne({
       where: {
-        userId: userId,
-        friendId: friendId
+        [db.Sequelize.Op.or]: [
+          { userId: userId, friendId: friendId },
+          { userId: friendId, friendId: userId }
+        ]
       }
     });
 
-    const friend2 = await db.friend.findOne({
-      where: {
-        userId: friendId,
-        friendId: userId
-      }
-    });
-
-    if (!friend1 && !friend2) {
+    if (!friend) {
       return res.status(404).json({ message: 'Friend not found' });
     }
 
-    // Destroy both directions of the friendship if they exist
-    if (friend1) await friend1.destroy();
-    if (friend2) await friend2.destroy();
-
-    res.status(200).json({ message: 'Friend deleted successfully' });
+    await friend.destroy();
+    res.status(200).json({ message: 'Friend deleted successfully', friendId: friendId });
   } catch (error) {
     console.error('Error deleting friend:', error);
     res.status(500).json({ error: 'Error deleting friend' });
   }
-}
+};
+
+exports.getUnassociatedUsers = async (req, res) => {
+  const userId = req.userId; // Assuming you have middleware to set req.userId
+  try {
+    // Get all friend ids
+    const friends = await db.friend.findAll({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { userId },
+          { friendId: userId }
+        ]
+      },
+      attributes: ['userId', 'friendId']
+    });
+
+    // Get all pending friend request ids
+    const friendRequests = await db.friendRequest.findAll({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { senderId: userId },
+          { receiverId: userId }
+        ]
+      },
+      attributes: ['senderId', 'receiverId']
+    });
+
+    // Extract all associated user ids
+    const associatedUserIds = new Set();
+    friends.forEach(friend => {
+      associatedUserIds.add(friend.userId);
+      associatedUserIds.add(friend.friendId);
+    });
+
+    friendRequests.forEach(request => {
+      associatedUserIds.add(request.senderId);
+      associatedUserIds.add(request.receiverId);
+    });
+
+    // Add the current user's id to the set to exclude it
+    associatedUserIds.add(userId);
+
+    // Find all users not in the associatedUserIds set
+    const unassociatedUsers = await db.user.findAll({
+      where: {
+        id: { [db.Sequelize.Op.notIn]: Array.from(associatedUserIds) }
+      },
+      attributes: ['id', 'fname', 'username', 'job', 'pfp'] // Adjust attributes as necessary
+    });
+
+    res.status(200).json(unassociatedUsers);
+  } catch (error) {
+    console.error('Error fetching unassociated users:', error);
+    res.status(500).json({ error: 'Error fetching unassociated users' });
+  }
+};
