@@ -33,4 +33,6 @@ module.exports = function (app) {
   app.patch('/api/user/update', authJwt.verifyToken, controller.updateUserData)
 
   app.patch('/api/user/status', authJwt.verifyToken, controller.updateUserStatus)
+
+  app.get('/api/searchUser', authJwt.verifyToken, controller.searchUsers)
 };

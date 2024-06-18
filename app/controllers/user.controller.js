@@ -56,4 +56,41 @@ exports.updateUserStatus = async (req, res) => {
     console.error('Error updating user status:', error);
     res.status(500).json({ error: 'An error occurred while updating the user status' });
   }
-}
+};
+
+exports.searchUsers = async (req, res) => {
+  const userId = req.userId;
+  const { query, limit, offset } = req.query;
+  const searchQuery = query || '';
+  const limitValue = parseInt(limit, 10) || 10;
+  const offsetValue = parseInt(offset, 10) || 0;
+
+  try {
+    const { count, rows } = await db.user.findAndCountAll({
+      where: {
+        [db.Sequelize.Op.and]: [
+          {
+            [db.Sequelize.Op.or]: [
+              { fname: { [db.Sequelize.Op.iLike]: `%${searchQuery}%` } },
+              { username: { [db.Sequelize.Op.iLike]: `%${searchQuery}%` } }
+            ]
+          },
+          { id: { [db.Sequelize.Op.ne]: userId } } // Exclude the current user
+        ]
+      },
+      attributes: ['id', 'fname', 'username', 'job', 'pfp', 'onlineStatus'], // Adjust attributes as necessary
+      limit: limitValue,
+      offset: offsetValue
+    });
+
+    res.status(200).json({
+      users: rows,
+      currentPage: Math.floor(offsetValue / limitValue) + 1,
+      totalPages: Math.ceil(count / limitValue),
+      totalUsers: count
+    });
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ error: 'Error searching users' });
+  }
+};

@@ -45,10 +45,13 @@ exports.createPost = async (req, res) => {
 
 exports.getAllPostsByUser = async (req, res) => {
   const userId = req.userId;
+  const { limit = 3, offset = 0 } = req.query;
 
   try {
-    const posts = await db.post.findAll({
+    const { count, rows: posts } = await db.post.findAndCountAll({
       where: { userId: userId },
+      limit: parseInt(limit),
+      offset: parseInt(offset),
       include: [
         {
           model: db.user,
@@ -71,13 +74,13 @@ exports.getAllPostsByUser = async (req, res) => {
                 model: db.user,
                 attributes: ['fname', 'pfp']
               },
-              order: [['commentId', 'DESC']]
+              order: [['createdAt', 'DESC']]
             }
           ],
-          order: [['commentId', 'DESC']]
+          order: [['createdAt', 'DESC']]
         }
       ],
-      order: [['postId', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     const response = posts.map(post => ({
@@ -107,7 +110,12 @@ exports.getAllPostsByUser = async (req, res) => {
       })) : null
     }));
 
-    res.status(200).json(response);
+    res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: Math.floor(offset / limit) + 1,
+      data: response
+    });
   } catch (error) {
     console.error("Error fetching posts by user:", error);
     res.status(500).json({ error: 'Error fetching posts by user' });
@@ -116,10 +124,13 @@ exports.getAllPostsByUser = async (req, res) => {
 
 exports.getNewsfeed = async (req, res) => {
   const userId = req.userId;
+  const { limit = 3, offset = 0 } = req.query;
 
   try {
-    const posts = await db.post.findAll({
+    const { count, rows: posts } = await db.post.findAndCountAll({
       where: { userId: { [db.Sequelize.Op.ne]: userId } },
+      limit: parseInt(limit),
+      offset: parseInt(offset),
       include: [
         {
           model: db.user,
@@ -142,13 +153,13 @@ exports.getNewsfeed = async (req, res) => {
                 model: db.user,
                 attributes: ['fname', 'pfp']
               },
-              order: [['commentId', 'DESC']]
+              order: [['createdAt', 'DESC']]
             }
           ],
-          order: [['commentId', 'DESC']]
+          order: [['createdAt', 'DESC']]
         }
       ],
-      order: [['postId', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     const response = posts.map(post => ({
@@ -178,7 +189,12 @@ exports.getNewsfeed = async (req, res) => {
       })) : null
     }));
 
-    res.status(200).json(response);
+    res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: Math.floor(offset / limit) + 1,
+      data: response
+    });
   } catch (error) {
     console.error("Error fetching posts not by user:", error);
     res.status(500).json({ error: 'Error fetching posts not by user' });
@@ -238,13 +254,13 @@ exports.getUserPostsById = async (req, res) => {
                 model: db.user,
                 attributes: ['fname', 'pfp']
               },
-              order: [['commentId', 'DESC']]
+              order: [['createdAt', 'DESC']]
             }
           ],
-          order: [['commentId', 'DESC']]
+          order: [['createdAt', 'DESC']]
         }
       ],
-      order: [['postId', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
 
