@@ -26,6 +26,7 @@ db.post = require("../models/post.model.js")(sequelize, Sequelize);
 db.comment = require("../models/comment.model.js")(sequelize, Sequelize);
 db.friend = require("../models/friend.model.js")(sequelize, Sequelize);
 db.friendRequest = require("../models/friendRequest.model.js")(sequelize, Sequelize);
+db.message = require("../models/message.model.js")(sequelize, Sequelize);
 
 // Comment Relations to Post, User and Comment itself
 db.comment.belongsTo(db.post, { foreignKey: 'postId' });
@@ -48,6 +49,10 @@ db.friend.belongsTo(db.user, { as: 'friend', foreignKey: 'friendId' });
 // FriendRequest to User Relations
 db.friendRequest.belongsTo(db.user, { as: 'sender', foreignKey: 'senderId' });
 db.friendRequest.belongsTo(db.user, { as: 'receiver', foreignKey: 'receiverId' });
+
+// Message to User Relations
+db.message.belongsTo(db.user, { as: 'sender', foreignKey: 'senderId' });
+db.message.belongsTo(db.user, { as: 'receiver', foreignKey: 'receiverId' });
 
 // User to Roles Relations
 db.role.belongsToMany(db.user, {

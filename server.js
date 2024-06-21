@@ -1,39 +1,40 @@
 const express = require("express");
 const cors = require("cors");
-require('dotenv').config()
+require('dotenv').config();
 const path = require('path');
+const http = require('http'); // Import http
+const { Server } = require('socket.io'); // Import socket.io
+const jwt = require("jsonwebtoken");
 
 const app = express();
-
-app.use(
-  cors({
+const server = http.createServer(app); // Create an HTTP server
+const io = new Server(server, { // Initialize socket.io with the HTTP server
+  cors: {
     origin: process.env.CORS,
     methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
     credentials: true,
     optionsSuccessStatus: 200,
     maxAge: -1
-  })
-);
+  }
+});
 
-// parse requests of content-type - application/json
+// Middleware and routes setup
+// app.use(
+//   cors({
+//     origin: process.env.CORS,
+//     methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
+//     allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
+//     credentials: true,
+//     optionsSuccessStatus: 200,
+//     maxAge: -1
+//   })
+// );
+
 app.use(express.json());
-
 app.use('/upload', express.static(path.join(__dirname, 'app/upload')));
-
-// parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
-
-// database
 const db = require("./app/models");
-
-// const Role = db.role;
-
-// force: true will drop the table if it already exists
-// db.sequelize.sync().then(() => {
-//   console.log('Drop and Resync Database with { force: true }');
-//   initial();
-// });
 
 db.sequelize.sync().then(() => {
   console.log('Database synchronized successfully.');
@@ -41,13 +42,10 @@ db.sequelize.sync().then(() => {
   console.error('Error synchronizing the database:', err);
 });
 
-
-// simple route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Winku application." });
 });
 
-// routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
 require('./app/routes/upload.routes')(app);
@@ -55,26 +53,60 @@ require('./app/routes/post.routes')(app);
 require('./app/routes/comment.routes')(app);
 require('./app/routes/friend.routes')(app);
 require('./app/routes/friendRequest.routes')(app);
+require('./app/routes/message.routes')(app);
 
-// set port, listen for requests
-const PORT = process.env.PORT || 7070;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+// Socket.IO setup
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error('Authentication error'));
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return next(new Error('Authentication error'));
+    }
+    socket.userId = decoded.id;
+    next();
+  });
 });
 
-// function initial() {
-//   Role.create({
-//     id: 1,
-//     name: "user"
-//   });
 
-//   Role.create({
-//     id: 2,
-//     name: "moderator"
-//   });
+io.on('connection', (socket) => {
+  console.log('user connected:', socket.userId);
+  const userId = socket.userId;
 
-//   Role.create({
-//     id: 3,
-//     name: "admin"
-//   });
-// }
+  // Join room
+  socket.on("join_room", (data) => {
+    socket.join(data);
+    console.log(`User with ID: ${userId} joined room: ${data}`);
+  });
+
+  // Send message
+  socket.on("send_message", async (data) => {
+    console.log("DATA", data);
+
+    // Save message to the database without room ID
+    try {
+      await db.message.create({
+        senderId: userId,
+        receiverId: data.receiverId,
+        message: data.message
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+
+    // Emit message to room
+    socket.to(data.room).emit("receive_message", { ...data, userId });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected:', socket.userId);
+  });
+});
+
+// Start the server
+const PORT = process.env.PORT || 7070;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
+});
