@@ -14,24 +14,39 @@ exports.getFriends = async (req, res) => {
     });
 
     const friendList = friends.map(friend => {
-      return friend.userId === userId ? friend.friendId : friend.userId;
+      return {
+        friendId: friend.userId === userId ? friend.friendId : friend.userId,
+        friendshipId: friend.friendshipId
+      };
     });
+
+    const friendIds = friendList.map(friend => friend.friendId);
 
     const users = await db.user.findAll({
       where: {
         id: {
-          [db.Sequelize.Op.in]: friendList
+          [db.Sequelize.Op.in]: friendIds
         }
       },
       attributes: ['id', 'fname', 'username', 'pfp', 'job', 'email', 'onlineStatus']
     });
 
-    res.status(200).json(users);
+    // Map users to include friendshipId
+    const usersWithFriendshipId = users.map(user => {
+      const friend = friendList.find(f => f.friendId === user.id);
+      return {
+        friendshipId: friend ? friend.friendshipId : null,
+        ...user.toJSON()
+      };
+    });
+
+    res.status(200).json(usersWithFriendshipId);
   } catch (error) {
     console.error('Error fetching friends:', error);
     res.status(500).json({ error: 'Error fetching friends' });
   }
 };
+
 
 
 exports.deleteFriend = async (req, res) => {

@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
     }
 
     // Emit message to room
-    socket.to(data.room).emit("receive_message", { ...data, userId });
+    socket.to(data.room).emit("receive_message", data);
   });
 
   socket.on('disconnect', () => {

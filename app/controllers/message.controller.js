@@ -30,10 +30,17 @@ exports.getMessages = async (req, res) => {
           { senderId: friendId, receiverId: userId }
         ]
       },
+      attributes: ['messageId', 'senderId', 'receiverId', 'message'],
       order: [['createdAt', 'ASC']]
     });
-
-    res.status(200).json(messages);
+    // const response = messages.map(elem => {
+    //   return { ...elem.dataValues, friendId }
+    // })
+    const response = {
+      messages,
+      friendId
+    }
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error retrieving messages:', error);
     res.status(500).json({ error: 'Error retrieving messages' });
