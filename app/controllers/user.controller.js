@@ -78,7 +78,7 @@ exports.searchUsers = async (req, res) => {
           { id: { [db.Sequelize.Op.ne]: userId } } // Exclude the current user
         ]
       },
-      attributes: ['id', 'fname', 'username', 'job', 'pfp', 'onlineStatus'], // Adjust attributes as necessary
+      attributes: ['id', 'fname', 'username', 'email', 'job', 'pfp', 'onlineStatus'], // Adjust attributes as necessary
       limit: limitValue,
       offset: offsetValue
     });

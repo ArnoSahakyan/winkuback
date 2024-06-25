@@ -37,7 +37,6 @@ app.use(express.urlencoded({ extended: true }));
 const db = require("./app/models");
 
 db.sequelize.sync().then(() => {
-  console.log('Database synchronized successfully.');
 }).catch((err) => {
   console.error('Error synchronizing the database:', err);
 });
@@ -72,18 +71,15 @@ io.use((socket, next) => {
 
 
 io.on('connection', (socket) => {
-  console.log('user connected:', socket.userId);
   const userId = socket.userId;
 
   // Join room
   socket.on("join_room", (data) => {
     socket.join(data);
-    console.log(`User with ID: ${userId} joined room: ${data}`);
   });
 
   // Send message
   socket.on("send_message", async (data) => {
-    console.log("DATA", data);
 
     // Save message to the database without room ID
     try {
@@ -101,7 +97,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected:', socket.userId);
   });
 });
 

@@ -5,7 +5,6 @@ exports.updatePath = async (userID, path, fieldKey) => {
     const userRecord = await user.findByPk(userID);
     if (userRecord) {
       await userRecord.update({ [fieldKey]: path });
-      console.log('Profile picture path updated successfully');
     } else {
       console.error('User not found');
     }
