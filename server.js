@@ -73,6 +73,8 @@ io.on('connection', (socket) => {
     socket.join(data);
   });
 
+  console.log("AAA");
+
   // Send message
   socket.on("send_message", async (data) => {
     // Save message to the database without room ID
