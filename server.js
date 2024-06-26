@@ -10,8 +10,8 @@ const app = express();
 const server = http.createServer(app); // Create an HTTP server
 const io = new Server(server, { // Initialize socket.io with the HTTP server
   cors: {
-    origin: process.env.CORS,
-    methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
+    origin: '*',
+    methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
     credentials: true,
     optionsSuccessStatus: 200,
