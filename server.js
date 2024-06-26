@@ -30,7 +30,7 @@ const io = new Server(server, { // Initialize socket.io with the HTTP server
 //     maxAge: -1
 //   })
 // );
-
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/upload', express.static(path.join(__dirname, 'app/upload')));
 app.use(express.urlencoded({ extended: true }));
