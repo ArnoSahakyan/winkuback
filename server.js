@@ -6,17 +6,19 @@ const http = require('http'); // Import http
 const { Server } = require('socket.io'); // Import socket.io
 const jwt = require("jsonwebtoken");
 
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  maxAge: -1
+}
+
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
 const io = new Server(server, { // Initialize socket.io with the HTTP server
-  cors: {
-    origin: '*',
-    methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
-    credentials: true,
-    optionsSuccessStatus: 200,
-    maxAge: -1
-  }
+  cors: corsOptions
 });
 
 // Middleware and routes setup
