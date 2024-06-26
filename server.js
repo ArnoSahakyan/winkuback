@@ -7,13 +7,13 @@ const { Server } = require('socket.io'); // Import socket.io
 const jwt = require("jsonwebtoken");
 
 const corsOptions = {
-  origin: '*',
+  origin: 'https://winku.vercel.app', // specify the origin
   methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
   credentials: true,
   optionsSuccessStatus: 200,
   maxAge: -1
-}
+};
 
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
@@ -22,26 +22,20 @@ const io = new Server(server, { // Initialize socket.io with the HTTP server
 });
 
 // Middleware and routes setup
-// app.use(
-//   cors({
-//     origin: process.env.CORS,
-//     methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
-//     allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
-//     credentials: true,
-//     optionsSuccessStatus: 200,
-//     maxAge: -1
-//   })
-// );
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/upload', express.static(path.join(__dirname, 'app/upload')));
 app.use(express.urlencoded({ extended: true }));
+
 const db = require("./app/models");
 
 db.sequelize.sync().then(() => {
+  console.log('Database synchronized');
 }).catch((err) => {
   console.error('Error synchronizing the database:', err);
 });
+
+app.options('*', cors(corsOptions)); // handle preflight requests
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Winku application." });
@@ -71,7 +65,6 @@ io.use((socket, next) => {
   });
 });
 
-
 io.on('connection', (socket) => {
   const userId = socket.userId;
 
@@ -82,7 +75,6 @@ io.on('connection', (socket) => {
 
   // Send message
   socket.on("send_message", async (data) => {
-
     // Save message to the database without room ID
     try {
       await db.message.create({
@@ -99,6 +91,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    console.log(`User ${userId} disconnected`);
   });
 });
 
