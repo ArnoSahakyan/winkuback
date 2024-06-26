@@ -1,13 +1,13 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-require('dotenv').config();
 const path = require('path');
 const http = require('http'); // Import http
 const { Server } = require('socket.io'); // Import socket.io
 const jwt = require("jsonwebtoken");
 
 const corsOptions = {
-  origin: 'https://winku.vercel.app', // specify the origin
+  origin: process.env.CORS, // specify the origin
   methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Authorization', 'Content-Type', 'Origin'],
   credentials: true,
