@@ -1,15 +1,13 @@
-const { createPost, getAllPostsByUser, getNewsfeed, getUserPhotos, getUserPostsById } = require('../controllers/post.controller');
+const { createPost, getAllPostsByUser, getNewsfeed, deletePost } = require('../controllers/post.controller');
 const { verifyToken } = require('../middleware/authJwt');
-const { uploadPostImages } = require('../middleware/uploads');
+const { uploadMiddleware } = require('../middleware/uploads');
 
 module.exports = function (app) {
-  app.post('/api/post', verifyToken, uploadPostImages.single('file'), createPost);
+  app.post('/api/post', verifyToken, uploadMiddleware.single('file'), createPost);
 
-  app.get('/api/userPosts', verifyToken, getAllPostsByUser)
+  app.delete('/api/delete-post/:postId', verifyToken, deletePost);
+
+  app.get('/api/user-posts', verifyToken, getAllPostsByUser)
 
   app.get('/api/posts', verifyToken, getNewsfeed)
-
-  app.get('/api/posts/:id', verifyToken, getUserPostsById)
-
-  app.get('/api/photos/:id', verifyToken, getUserPhotos)
 };

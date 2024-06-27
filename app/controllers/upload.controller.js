@@ -1,8 +1,10 @@
 const { user } = require("../models");
+const supabase = require('../../supabaseClient');
+const db = require("../models");
 
-exports.updatePath = async (userID, path, fieldKey) => {
+exports.updatePath = async (userId, path, fieldKey) => {
   try {
-    const userRecord = await user.findByPk(userID);
+    const userRecord = await user.findByPk(userId);
     if (userRecord) {
       await userRecord.update({ [fieldKey]: path });
     } else {
@@ -13,34 +15,56 @@ exports.updatePath = async (userID, path, fieldKey) => {
   }
 };
 
-exports.controllerPfp = async (req, res) => {
+exports.controllerUserImages = async (req, res) => {
   try {
-    const userID = req.userId;
-    const relativePath = req.file.relativePath;
+    const userId = req.userId;
+    const { file } = req;
+    const { type } = req.body;
 
-    await this.updatePath(userID, relativePath, "pfp");
+    if (!file || !userId) {
+      return res.status(400).json({ error: 'Incomplete request' });
+    }
 
-    res.status(200).json({
-      relativePath
-    });
+    const user = await db.user.findOne({ where: { id: userId }, attributes: [type] });
+    const existingImagePath = user ? user[type] : null;
+
+    if (existingImagePath) {
+      const existingFilePath = existingImagePath.replace(`${process.env.SUPABASE_IMAGE_URL}winku/`, '');
+
+      const { data: deleteData, error: deleteError } = await supabase
+        .storage
+        .from('winku')
+        .remove([existingFilePath]);
+
+      if (deleteError) {
+        console.error('Error deleting existing profile picture:', deleteError.message);
+      } else if (!deleteData || deleteData.length === 0) {
+        console.error('Failed to delete file. File not found:', existingFilePath);
+      }
+    }
+
+    const filePath = `${userId}/${type}/${Date.now()}-${file.originalname}`;
+
+    const { data, error } = await supabase
+      .storage
+      .from('winku')
+      .upload(filePath, file.buffer, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.mimetype,
+      });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    const newURL = `${process.env.SUPABASE_IMAGE_URL}${data.fullPath}`;
+
+    await db.user.update({ [type]: newURL }, { where: { id: userId } });
+
+    res.json({ [type]: newURL, type });
+
   } catch (error) {
     console.error('Failed to update profile picture path:', error);
     res.status(500).send('Internal server error');
   }
-}
-
-exports.controllerCover = async (req, res) => {
-  try {
-    const userID = req.userId;
-    const relativePath = req.file.relativePath;
-
-    await this.updatePath(userID, relativePath, "coverPhoto");
-
-    res.status(200).json({
-      relativePath
-    });
-  } catch (error) {
-    console.error('Failed to update profile picture path:', error);
-    res.status(500).send('Internal server error');
-  }
-}
+};
