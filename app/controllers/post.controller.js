@@ -6,30 +6,37 @@ exports.createPost = async (req, res) => {
   const { file } = req;
   const content = req.body.content || null;
 
-  const filePath = `${userId}/posts/${Date.now()}-${file.originalname}`;
+  let newURL = null;
 
-  const { data, error } = await supabase
-    .storage
-    .from('winku')
-    .upload(filePath, file.buffer, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType: file.mimetype,
-    });
+  // Check if file is provided and process it
+  if (file) {
+    const filePath = `${userId}/posts/${Date.now()}-${file.originalname}`;
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
+    const { data, error } = await supabase
+      .storage
+      .from('winku')
+      .upload(filePath, file.buffer, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.mimetype,
+      });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    newURL = `${process.env.SUPABASE_IMAGE_URL}${data.path}`;
   }
 
-  const newURL = `${process.env.SUPABASE_IMAGE_URL}${data.fullPath}`;
-
   try {
+    // Create a new post
     const post = await db.post.create({
       userId: userId,
       content: content,
       image: newURL
     });
 
+    // Fetch the full post with user details
     const fullPost = await db.post.findByPk(post.dataValues.postId, {
       include: {
         model: db.user,
@@ -37,29 +44,25 @@ exports.createPost = async (req, res) => {
       }
     });
 
+    // Construct the response
     const response = {
       postId: fullPost.postId,
       likes: fullPost.likes,
       createdAt: fullPost.createdAt,
       fname: fullPost.user.fname,
       pfp: fullPost.user.pfp,
-      userId: fullPost.userId
+      userId: fullPost.userId,
+      content: fullPost.content || null,
+      image: fullPost.image || null
     };
-
-    if (fullPost.content) {
-      response.content = fullPost.content;
-    }
-
-    if (fullPost.image) {
-      response.image = fullPost.image;
-    }
 
     res.status(201).json(response);
   } catch (error) {
-    console.error("Error fetching full post:", error);
+    console.error("Error creating post:", error);
     res.status(500).json({ error: 'Error creating post' });
   }
 }
+
 
 exports.deletePost = async (req, res) => {
   const { postId } = req.params;
