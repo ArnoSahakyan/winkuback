@@ -23,7 +23,7 @@ module.exports = (sequelize, Sequelize) => {
     },
     coverPhoto: {
       type: Sequelize.STRING,
-      defaultValue: 'https://hbjvefabqngowqvdurbj.supabase.co/storage/v1/object/public/winku-storage/default/cover.jpg'
+      defaultValue: 'https://hbjvefabqngowqvdurbj.supabase.co/storage/v1/object/public/winku/default/cover.jpg'
     },
     onlineStatus: {
       type: Sequelize.STRING,
