@@ -74,6 +74,8 @@ exports.deletePost = async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
+    await db.comment.destroy({ where: { postId: postId } });
+
     const existingImagePath = post.image;
 
     if (existingImagePath) {
