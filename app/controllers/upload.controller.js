@@ -31,6 +31,8 @@ exports.controllerUserImages = async (req, res) => {
     if (existingImagePath) {
       const existingFilePath = existingImagePath.replace(`${process.env.SUPABASE_IMAGE_URL}winku/`, '');
 
+      if (existingFilePath == 'default/pfp.jpg' || existingFilePath == 'default/cover.jpg') return;
+
       const { data: deleteData, error: deleteError } = await supabase
         .storage
         .from('winku')
