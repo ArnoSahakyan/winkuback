@@ -18,12 +18,12 @@ module.exports = (sequelize, Sequelize) => {
     },
     pfp: {
       type: Sequelize.STRING,
-      defaultValue: '/upload/default/pfp.jpg'
+      defaultValue: 'https://hbjvefabqngowqvdurbj.supabase.co/storage/v1/object/public/winku/default/pfp.jpg'
 
     },
     coverPhoto: {
       type: Sequelize.STRING,
-      defaultValue: '/upload/default/cover.jpg'
+      defaultValue: 'https://hbjvefabqngowqvdurbj.supabase.co/storage/v1/object/public/winku-storage/default/cover.jpg'
     },
     onlineStatus: {
       type: Sequelize.STRING,

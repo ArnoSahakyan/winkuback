@@ -34,5 +34,5 @@ module.exports = function (app) {
 
   app.patch('/api/user/status', authJwt.verifyToken, controller.updateUserStatus)
 
-  app.get('/api/searchUser', authJwt.verifyToken, controller.searchUsers)
+  app.get('/api/search-user', authJwt.verifyToken, controller.searchUsers)
 };
