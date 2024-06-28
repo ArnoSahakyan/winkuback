@@ -25,7 +25,7 @@ exports.createPost = async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
-    newURL = `${process.env.SUPABASE_IMAGE_URL}${data.path}`;
+    newURL = `${process.env.SUPABASE_IMAGE_URL}winku/${data.path}`;
   }
 
   try {
