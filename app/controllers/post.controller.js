@@ -47,7 +47,7 @@ exports.createPost = async (req, res) => {
     // Construct the response
     const response = {
       postId: fullPost.postId,
-      likes: fullPost.likes,
+      likeCount: fullPost.likeCount,
       createdAt: fullPost.createdAt,
       fname: fullPost.user.fname,
       pfp: fullPost.user.pfp,
@@ -142,15 +142,28 @@ exports.getAllPostsByUser = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Check if the user has liked each post
+    const postIds = posts.map(post => post.postId);
+    const likes = await db.like.findAll({
+      where: {
+        userId: userId,
+        postId: postIds
+      },
+      attributes: ['postId']
+    });
+
+    const likedPosts = likes.map(like => like.postId);
+
     const response = posts.map(post => ({
       postId: post.postId,
       content: post.content,
       image: post.image,
-      likes: post.likes,
+      likeCount: post.likeCount,
       createdAt: post.createdAt,
       fname: post.user.fname,
       pfp: post.user.pfp,
       userId: post.userId,
+      likedByUser: likedPosts.includes(post.postId),
       comments: post.comments.length > 0 ? post.comments.map(comment => ({
         commentId: comment.commentId,
         content: comment.content,
@@ -180,6 +193,7 @@ exports.getAllPostsByUser = async (req, res) => {
     res.status(500).json({ error: 'Error fetching posts by user' });
   }
 };
+
 
 exports.getNewsfeed = async (req, res) => {
   const userId = req.userId;
@@ -221,15 +235,28 @@ exports.getNewsfeed = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Check if the user has liked each post
+    const postIds = posts.map(post => post.postId);
+    const likes = await db.like.findAll({
+      where: {
+        userId: userId,
+        postId: postIds
+      },
+      attributes: ['postId']
+    });
+
+    const likedPosts = likes.map(like => like.postId);
+
     const response = posts.map(post => ({
       postId: post.postId,
       content: post.content,
       image: post.image,
-      likes: post.likes,
+      likeCount: post.likeCount,
       createdAt: post.createdAt,
       fname: post.user.fname,
       pfp: post.user.pfp,
       userId: post.userId,
+      likedByUser: likedPosts.includes(post.postId),
       comments: post.comments.length > 0 ? post.comments.map(comment => ({
         commentId: comment.commentId,
         content: comment.content,

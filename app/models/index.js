@@ -26,6 +26,7 @@ db.sequelize = sequelize;
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
 db.post = require("../models/post.model.js")(sequelize, Sequelize);
+db.like = require("../models/like.model.js")(sequelize, Sequelize);
 db.comment = require("../models/comment.model.js")(sequelize, Sequelize);
 db.friend = require("../models/friend.model.js")(sequelize, Sequelize);
 db.friendRequest = require("../models/friendRequest.model.js")(sequelize, Sequelize);
@@ -41,9 +42,17 @@ db.user.hasMany(db.comment, { foreignKey: 'userId' })
 db.comment.belongsTo(db.comment, { foreignKey: 'parentId', as: 'parent' });
 db.comment.hasMany(db.comment, { foreignKey: 'parentId', as: 'replies' });
 
-// Post to User Relations
+// User-Post Relationship
 db.user.hasMany(db.post, { foreignKey: 'userId' });
 db.post.belongsTo(db.user, { foreignKey: 'userId' });
+
+// User-Like Relationship
+db.user.hasMany(db.like, { foreignKey: 'userId', as: 'userLikes' });
+db.like.belongsTo(db.user, { foreignKey: 'userId' });
+
+// Post-Like Relationship
+db.post.hasMany(db.like, { foreignKey: 'postId', as: 'postLikes' });
+db.like.belongsTo(db.post, { foreignKey: 'postId' });
 
 // Friend to User Relations
 db.friend.belongsTo(db.user, { as: 'user', foreignKey: 'userId' });
