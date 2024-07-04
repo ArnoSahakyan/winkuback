@@ -1,94 +1,307 @@
-# Winku Social Networking Server
+Here is a README file for your backend with all the provided routes:
+
+# Project Name
 
 ## Overview
 
-Welcome to the Winku Social Networking Server! This Node.js project utilizes Express.js to create a robust server-side application for managing the backend functionalities of the Winku social networking platform.
+This project is a backend server built with Node.js and Express. It provides authentication, user management, posting, commenting, liking, and messaging functionalities, along with image upload and compression features.
 
-## Features
+## Setup
 
-- User authentication and authorization
-- Profile management
-- Post creation, editing, and deletion
-- Commenting and liking on posts
-- Real-time notifications
-- Messaging system
-- Search functionality
+### Prerequisites
 
-## Installation
+- Node.js
+- PostgreSQL
+- Supabase account (for image storage)
+
+### Installation
 
 1. Clone the repository:
+   ```sh
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
 
-    ```bash
-    git clone https://github.com/ArnoSahakyan/winkuback.git
-    ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
 
-2. Navigate to the project directory:
+3. Set up environment variables. Create a `.env` file in the root directory and add the following:
 
-    ```bash
-    cd winku-server
-    ```
+   ```env
+   PORT=<your-port>
+   USER_NAME=<your-database-username>
+   HOST=<your-database-host>
+   PASSWORD=<your-database-password>
+   DB_NAME=<your-database-name>
+   CORS=<your-cors-url>
+   ACCESS_TOKEN_SECRET=<your-jwt-access-token-secret>
+   REFRESH_TOKEN_SECRET=<your-jwt-refresh-token-secret>
+   SUPABASE_URL=<your-supabase-url>
+   SUPABASE_KEY=<your-supabase-key>
+   SUPABASE_IMAGE_URL=<your-supabase-image-url>
+   ```
 
-3. Install dependencies:
+4. Run database migrations and seeders if necessary.
 
-    ```bash
-    npm install
-    ```
+### Running the Server
 
-4. Set up environment variables:
+To start the server in development mode:
 
-    Create a `.env` file in the root directory and define the following variables:
+```sh
+npm run dev
+```
 
-    ```
-    PORT=3000
-    DB_URI=<your_database_connection_string>
-    SECRET_KEY=<your_secret_key_for_jwt>
-    ```
+To start the server in production mode:
 
-5. Start the server:
-
-    ```bash
-    npm start
-    ```
-
-6. The server will start running on `http://localhost:3000` by default.
+```sh
+npm start
+```
 
 ## API Endpoints
 
-- **POST /api/auth/register**: Register a new user.
-- **POST /api/auth/login**: Login user and generate JWT token.
-- **GET /api/profile/me**: Get current user's profile.
-- **PUT /api/profile**: Update current user's profile.
-- **GET /api/profile/user/:user_id**: Get profile by user ID.
-- **DELETE /api/profile**: Delete current user's account.
-- **POST /api/posts**: Create a new post.
-- **GET /api/posts**: Get all posts.
-- **GET /api/posts/:post_id**: Get post by ID.
-- **PUT /api/posts/:post_id**: Update post by ID.
-- **DELETE /api/posts/:post_id**: Delete post by ID.
-- **POST /api/posts/comment/:post_id**: Comment on a post.
-- **DELETE /api/posts/comment/:post_id/:comment_id**: Delete a comment on a post.
-- **POST /api/posts/like/:post_id**: Like a post.
-- **POST /api/posts/unlike/:post_id**: Unlike a post.
-- **GET /api/notifications**: Get current user's notifications.
-- **PUT /api/notifications/:notification_id**: Mark notification as read.
-- **POST /api/messages**: Send a message to another user.
-- **GET /api/messages**: Get current user's messages.
-- **GET /api/messages/:user_id**: Get messages with a specific user.
-- **DELETE /api/messages/:message_id**: Delete a message by ID.
-- **GET /api/search/users/:query**: Search for users by username.
+### Authentication Routes
 
-## Technologies Used
+- **Signup:**
+  ```http
+  POST /api/auth/signup
+  ```
+  Middleware:
+  - `verifySignUp.checkDuplicateUsernameOrEmail`
+  - `verifySignUp.checkRolesExisted`
+  - Controller: `controller.signup`
 
-- Node.js
-- Express.js
-- PostgreSQL
-- JWT for authentication
-- Socket.io for real-time notifications
+- **Signin:**
+  ```http
+  POST /api/auth/signin
+  ```
+  Controller: `controller.signin`
 
-## Contributing
+- **Refresh Token:**
+  ```http
+  POST /api/auth/refresh
+  ```
+  Controller: `controller.refreshToken`
 
-Contributions are welcome! If you have any ideas for improvements or new features, feel free to open an issue or submit a pull request.
+- **Get User Info:**
+  ```http
+  GET /api/user/info
+  ```
+  Middleware: `verifyToken`
+  Controller: `controller.userInfo`
+
+- **Get User by ID:**
+  ```http
+  GET /api/user/:id
+  ```
+  Middleware: `verifyToken`
+  Controller: `controller.getUserById`
+
+### User Routes
+
+- **All Access:**
+  ```http
+  GET /api/test/all
+  ```
+  Controller: `controller.allAccess`
+
+- **User Board:**
+  ```http
+  GET /api/test/user
+  ```
+  Middleware: `authJwt.verifyToken`
+  Controller: `controller.userBoard`
+
+- **Moderator Board:**
+  ```http
+  GET /api/test/mod
+  ```
+  Middleware: `authJwt.verifyToken`, `authJwt.isModerator`
+  Controller: `controller.moderatorBoard`
+
+- **Admin Board:**
+  ```http
+  GET /api/test/admin
+  ```
+  Middleware: `authJwt.verifyToken`, `authJwt.isAdmin`
+  Controller: `controller.adminBoard`
+
+- **Update User Data:**
+  ```http
+  PATCH /api/user/update
+  ```
+  Middleware: `authJwt.verifyToken`
+  Controller: `controller.updateUserData`
+
+- **Update User Status:**
+  ```http
+  PATCH /api/user/status
+  ```
+  Middleware: `authJwt.verifyToken`
+  Controller: `controller.updateUserStatus`
+
+- **Search Users:**
+  ```http
+  GET /api/search-user
+  ```
+  Middleware: `authJwt.verifyToken`
+  Controller: `controller.searchUsers`
+
+### Post Routes
+
+- **Create Post:**
+  ```http
+  POST /api/post
+  ```
+  Middleware: `verifyToken`, `uploadMiddleware.single('file')`, `compressImageMiddleware`
+  Controller: `createPost`
+
+- **Delete Post:**
+  ```http
+  DELETE /api/delete-post/:postId
+  ```
+  Middleware: `verifyToken`
+  Controller: `deletePost`
+
+- **Get All Posts by User:**
+  ```http
+  GET /api/user-posts
+  ```
+  Middleware: `verifyToken`
+  Controller: `getAllPostsByUser`
+
+- **Get Newsfeed:**
+  ```http
+  GET /api/posts
+  ```
+  Middleware: `verifyToken`
+  Controller: `getNewsfeed`
+
+- **Like Post:**
+  ```http
+  POST /api/like
+  ```
+  Middleware: `verifyToken`
+  Controller: `likePost`
+
+- **Unlike Post:**
+  ```http
+  POST /api/unlike
+  ```
+  Middleware: `verifyToken`
+  Controller: `unlikePost`
+
+- **Create Comment:**
+  ```http
+  POST /api/comment
+  ```
+  Middleware: `verifyToken`
+  Controller: `createComment`
+
+### Friend Routes
+
+- **Get Friends:**
+  ```http
+  GET /api/friends
+  ```
+  Middleware: `verifyToken`
+  Controller: `getFriends`
+
+- **Get Unassociated Users:**
+  ```http
+  GET /api/unassociated-users
+  ```
+  Middleware: `verifyToken`
+  Controller: `getUnassociatedUsers`
+
+- **Delete Friend:**
+  ```http
+  DELETE /api/delete-friend/:friendId
+  ```
+  Middleware: `verifyToken`
+  Controller: `deleteFriend`
+
+### Friend Request Routes
+
+- **Get Friend Requests:**
+  ```http
+  GET /api/requests
+  ```
+  Middleware: `verifyToken`
+  Controller: `getRequests`
+
+- **Send Friend Request:**
+  ```http
+  POST /api/send-request
+  ```
+  Middleware: `verifyToken`
+  Controller: `sendFriendRequest`
+
+- **Respond to Friend Request:**
+  ```http
+  POST /api/respond-request
+  ```
+  Middleware: `verifyToken`
+  Controller: `respondToFriendRequest`
+
+### Message Routes
+
+- **Save Message:**
+  ```http
+  POST /api/messages
+  ```
+  Middleware: `verifyToken`
+  Controller: `saveMessage`
+
+- **Get Messages:**
+  ```http
+  GET /api/messages/:friendId
+  ```
+  Middleware: `verifyToken`
+  Controller: `getMessages`
+
+### Upload Routes
+
+- **Upload User Images:**
+  ```http
+  POST /api/upload/user-images
+  ```
+  Middleware: `verifyToken`, `uploadMiddleware.single('file')`, `compressImageMiddleware`
+  Controller: `controllerUserImages`
+
+## Additional Middleware and Controllers
+
+### Middleware
+
+- **uploadMiddleware**: Handles file uploads using `multer`.
+- **compressImageMiddleware**: Compresses uploaded images and converts them to `webp` format.
+
+### Controllers
+
+- **controller**: Handles various user-related operations.
+- **createPost**: Handles creating posts.
+- **deletePost**: Handles deleting posts.
+- **getAllPostsByUser**: Retrieves all posts by a user.
+- **getNewsfeed**: Retrieves the newsfeed.
+- **likePost**: Handles liking a post.
+- **unlikePost**: Handles unliking a post.
+- **createComment**: Handles creating comments.
+- **getFriends**: Retrieves the friends list.
+- **getUnassociatedUsers**: Retrieves users not associated as friends.
+- **deleteFriend**: Handles deleting a friend.
+- **getRequests**: Retrieves friend requests.
+- **sendFriendRequest**: Handles sending a friend request.
+- **respondToFriendRequest**: Handles responding to a friend request.
+- **saveMessage**: Handles saving messages.
+- **getMessages**: Retrieves messages with a friend.
+- **controllerUserImages**: Handles user image uploads and updates.
 
 ## Acknowledgements
 
-Special thanks to the developers of Node.js, Express.js, MongoDB, and all the other open-source libraries and tools used in this project.
+- [Node.js](https://nodejs.org/)
+- [Express](https://expressjs.com/)
+- [Sequelize](https://sequelize.org/)
+- [Supabase](https://supabase.io/)
+
+Feel free to reach out if you have any questions or need further assistance!
