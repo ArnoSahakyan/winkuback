@@ -10,7 +10,7 @@ const imageFileFilter = (req, file, cb) => {
 
 const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 3 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: imageFileFilter
 });
 
@@ -19,8 +19,8 @@ const compressImageMiddleware = async (req, res, next) => {
 
   try {
     const buffer = await sharp(req.file.buffer)
-      .resize(800)
-      .webp({ quality: 90 })
+      .resize(1200)
+      .webp({ quality: 85 })
       .toBuffer();
 
     req.file.buffer = buffer;
