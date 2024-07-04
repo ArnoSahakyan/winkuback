@@ -1,4 +1,5 @@
 const multer = require('multer');
+const sharp = require('sharp');
 
 const imageFileFilter = (req, file, cb) => {
   if (!file.mimetype.startsWith('image/')) {
@@ -13,6 +14,27 @@ const uploadMiddleware = multer({
   fileFilter: imageFileFilter
 });
 
+const compressImageMiddleware = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const buffer = await sharp(req.file.buffer)
+      .resize(800)
+      .webp({ quality: 90 })
+      .toBuffer();
+
+    req.file.buffer = buffer;
+    req.file.mimetype = 'image/webp';
+    req.file.originalname = req.file.originalname.replace(/\.\w+$/, '.webp');
+
+    next();
+  } catch (error) {
+    console.error('Error processing image:', error);
+    res.status(500).json({ error: 'Failed to process image' });
+  }
+};
+
 module.exports = {
-  uploadMiddleware
+  uploadMiddleware,
+  compressImageMiddleware
 };

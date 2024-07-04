@@ -33,9 +33,6 @@ exports.getMessages = async (req, res) => {
       attributes: ['messageId', 'senderId', 'receiverId', 'message'],
       order: [['createdAt', 'ASC']]
     });
-    // const response = messages.map(elem => {
-    //   return { ...elem.dataValues, friendId }
-    // })
     const response = {
       messages,
       friendId
