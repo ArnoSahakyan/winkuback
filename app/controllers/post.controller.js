@@ -63,7 +63,6 @@ exports.createPost = async (req, res) => {
   }
 }
 
-
 exports.deletePost = async (req, res) => {
   const { postId } = req.params;
 
@@ -194,7 +193,6 @@ exports.getAllPostsByUser = async (req, res) => {
   }
 };
 
-
 exports.getNewsfeed = async (req, res) => {
   const userId = req.userId;
   const { limit = 3, offset = 0 } = req.query;
@@ -286,3 +284,35 @@ exports.getNewsfeed = async (req, res) => {
     res.status(500).json({ error: 'Error fetching posts not by user' });
   }
 };
+
+exports.getUserPhotos = async (req, res) => {
+  const userId = req.userId
+  const { limit = 3, offset = 0 } = req.query;
+  try {
+    const { count, rows: posts } = await db.post.findAndCountAll({
+      where: {
+        userId: userId,
+        image: { [db.Sequelize.Op.ne]: null }
+      },
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      attributes: ['postId', 'image'],
+      order: [['postId', 'DESC']]
+    })
+
+    const response = posts.map(post => ({
+      postId: post.postId,
+      image: post.image,
+    }));
+
+    res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: Math.floor(offset / limit) + 1,
+      data: response
+    });
+  } catch (error) {
+    console.error("Error fetching posts not by user:", error);
+    res.status(500).json({ error: 'Error fetching posts not by user' });
+  }
+}
